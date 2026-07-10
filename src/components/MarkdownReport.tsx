@@ -24,7 +24,8 @@ export function MarkdownReport({ content, maxHeight, bordered = true }: Markdown
         p: 2,
         overflow: 'auto',
         maxHeight: maxHeight ?? 'none',
-        background: '#fff',
+        background: 'transparent',
+        backdropFilter: 'blur(10px)',
       }}
     >
       <ReactMarkdown>{content}</ReactMarkdown>

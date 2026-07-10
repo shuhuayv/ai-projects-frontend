@@ -1,8 +1,9 @@
 import React from 'react';
-import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { LiquidButton } from './LiquidButton';
 
 /** 单个后端服务的状态信息。 */
 export interface ServiceStatus {
@@ -36,19 +37,36 @@ export function StatusPanel({
   onRefresh,
 }: StatusPanelProps): React.ReactElement {
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
+    <Paper variant="outlined" sx={{ p: 2, background: 'transparent', backdropFilter: 'blur(10px)' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
         <Typography variant="h6">后端状态</Typography>
         {onRefresh && (
-          <Button size="small" startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />} onClick={onRefresh} disabled={loading}>
+          <LiquidButton
+            size="small"
+            variant="outlined"
+            startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
+            onClick={onRefresh}
+            disabled={loading}
+          >
             刷新状态
-          </Button>
+          </LiquidButton>
         )}
       </Stack>
 
       <Stack spacing={1}>
         {services.map((svc) => (
-          <Stack key={svc.name} direction="row" spacing={1} alignItems="center">
+          <Stack
+            key={svc.name}
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{
+              p: 0.5,
+              borderRadius: 1,
+              transition: 'background 0.25s ease',
+              '&:hover': { background: 'rgba(186,196,255,0.06)' },
+            }}
+          >
             {svc.reachable === true ? (
               <CheckCircleIcon color="success" fontSize="small" />
             ) : svc.reachable === false ? (

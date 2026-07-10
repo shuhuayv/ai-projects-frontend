@@ -3,14 +3,12 @@ import { useState } from 'react';
 import {
   Alert,
   Box,
-  Button,
   Chip,
   CircularProgress,
   Divider,
   FormControl,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   SelectChangeEvent,
   Stack,
@@ -23,12 +21,16 @@ import {
   Typography,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import ChatIcon from '@mui/icons-material/Chat';
 import { ragApi } from '../api/rag';
 import { ApiClientError, toErrorMessage } from '../api/http';
 import { Link as RouterLink } from 'react-router-dom';
 import { RagAskResponse } from '../api/types';
 import { MarkdownReport, CodeBlock } from '../components/MarkdownReport';
 import { HONESTY, HonestyBadge } from '../components/HonestyBadge';
+import { LiquidCard } from '../components/LiquidCard';
+import { LiquidButton } from '../components/LiquidButton';
+import { FeatureIcon } from '../components/FeatureIcon';
 
 export function RagAsk(): React.ReactElement {
   const [question, setQuestion] = useState('');
@@ -36,7 +38,7 @@ export function RagAsk(): React.ReactElement {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [resp, setResp] = useState<RagAskResponse | null>(null);
-  const [hasIndexed, setHasIndexed] = useState<boolean>(() => {
+  const [hasIndexed] = useState<boolean>(() => {
     try { return sessionStorage.getItem('ragIndexedDocId') != null; } catch { return false; }
   });
 
@@ -50,7 +52,6 @@ export function RagAsk(): React.ReactElement {
     try {
       const r = await ragApi.ask(question.trim(), topK);
       setResp(r);
-      try { sessionStorage.setItem('ragIndexedDocId', '1'); setHasIndexed(true); } catch { /* ignore */ }
     } catch (e) {
       const msg = toErrorMessage(e);
       const isServerError =
@@ -74,9 +75,10 @@ export function RagAsk(): React.ReactElement {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 0.5 }}>
-        RAG 问答
-      </Typography>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+        <FeatureIcon icon={<ChatIcon sx={{ fontSize: 24 }} />} size={44} />
+        <Typography variant="h4">RAG 问答</Typography>
+      </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         输入问题并指定检索 TopK，基于已索引文档生成回答与引用来源。
       </Typography>
@@ -92,7 +94,7 @@ export function RagAsk(): React.ReactElement {
         </Alert>
       )}
 
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <LiquidCard variant="outlined" sx={{ p: 2, mb: 2 }}>
         <Stack spacing={2}>
           <TextField
             label="问题（必填）"
@@ -114,17 +116,17 @@ export function RagAsk(): React.ReactElement {
                 ))}
               </Select>
             </FormControl>
-            <Button
+            <LiquidButton
               variant="contained"
               startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SendIcon />}
               onClick={handleAsk}
               disabled={loading}
             >
               提问
-            </Button>
+            </LiquidButton>
           </Stack>
         </Stack>
-      </Paper>
+      </LiquidCard>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -142,14 +144,14 @@ export function RagAsk(): React.ReactElement {
             <Chip size="small" label={`引用 ${resp.referenceCount} 条`} variant="outlined" />
           </Stack>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               回答
             </Typography>
             <MarkdownReport content={resp.answer} bordered={false} />
-          </Paper>
+          </LiquidCard>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               引用来源（references · 演示性召回）
             </Typography>
@@ -181,14 +183,14 @@ export function RagAsk(): React.ReactElement {
                 </TableBody>
               </Table>
             )}
-          </Paper>
+          </LiquidCard>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Prompt 预览
             </Typography>
             <CodeBlock text={resp.promptPreview || '(空)'} maxHeight={300} />
-          </Paper>
+          </LiquidCard>
         </Stack>
       )}
     </Box>

@@ -3,6 +3,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import React from 'react';
+import { motion } from 'framer-motion';
+import { motionTokens, EASE } from './PageTransition';
+import { AURORA } from '../theme';
 
 /** 单个步骤的状态。 */
 export type StepStatus = 'idle' | 'active' | 'loading' | 'success' | 'error';
@@ -25,10 +28,14 @@ export interface StepWizardProps {
   renderActions?: (step: WizardStep, index: number) => React.ReactNode;
 }
 
-function StepIcon({ status }: { status: StepStatus }): React.ReactNode {
+function StepIcon({ status, active }: { status: StepStatus; active: boolean }): React.ReactNode {
   switch (status) {
     case 'success':
-      return <CheckCircleIcon color="success" />;
+      return (
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={motionTokens.spring}>
+          <CheckCircleIcon color="success" />
+        </motion.div>
+      );
     case 'error':
       return <ErrorIcon color="error" />;
     case 'loading':
@@ -36,7 +43,7 @@ function StepIcon({ status }: { status: StepStatus }): React.ReactNode {
     case 'active':
       return <RadioButtonUncheckedIcon color="primary" />;
     default:
-      return <RadioButtonUncheckedIcon />;
+      return <RadioButtonUncheckedIcon sx={{ opacity: active ? 1 : 0.5 }} />;
   }
 }
 
@@ -49,37 +56,62 @@ function StepIcon({ status }: { status: StepStatus }): React.ReactNode {
 export function StepWizard({ steps, activeStep, renderActions }: StepWizardProps): React.ReactElement {
   return (
     <Stepper activeStep={activeStep} orientation="vertical" sx={{ width: '100%' }}>
-      {steps.map((step, index) => (
-        <Step key={step.key} completed={step.status === 'success'}>
-          <StepLabel StepIconComponent={() => <StepIcon status={step.status} />} optional={
-            step.status === 'loading' ? <Typography variant="caption">进行中…</Typography> : undefined
-          }>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              {step.label}
-            </Typography>
-          </StepLabel>
-          <StepContent>
-            {step.description && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {step.description}
-              </Typography>
-            )}
+      {steps.map((step, index) => {
+        const isActive = index === activeStep;
+        return (
+          <Step key={step.key} completed={step.status === 'success'}>
+            <StepLabel
+              StepIconComponent={() => <StepIcon status={step.status} active={isActive} />}
+              optional={
+                step.status === 'loading' ? <Typography variant="caption">进行中…</Typography> : undefined
+              }
+            >
+              <Box
+                sx={{
+                  borderRadius: 1.5,
+                  px: 1,
+                  py: 0.5,
+                  ml: -1,
+                  borderLeft: isActive ? `3px solid ${AURORA.primary}` : '3px solid transparent',
+                  background: isActive ? 'rgba(91,127,224,0.14)' : 'transparent',
+                  transition: 'background 0.3s ease, border-color 0.3s ease',
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {step.label}
+                </Typography>
+              </Box>
+            </StepLabel>
+            <StepContent>
+              <motion.div
+                key={step.key}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                {step.description && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {step.description}
+                  </Typography>
+                )}
 
-            {step.status === 'success' && step.message && (
-              <Typography variant="body2" color="success.main" sx={{ mb: 1 }}>
-                ✓ {step.message}
-              </Typography>
-            )}
-            {step.status === 'error' && step.message && (
-              <Typography variant="body2" color="error.main" sx={{ mb: 1 }}>
-                ✗ {step.message}
-              </Typography>
-            )}
+                {step.status === 'success' && step.message && (
+                  <Typography variant="body2" color="success.main" sx={{ mb: 1 }}>
+                    ✓ {step.message}
+                  </Typography>
+                )}
+                {step.status === 'error' && step.message && (
+                  <Typography variant="body2" color="error.main" sx={{ mb: 1 }}>
+                    ✗ {step.message}
+                  </Typography>
+                )}
 
-            <Box sx={{ mb: 2, mt: 1 }}>{renderActions?.(step, index)}</Box>
-          </StepContent>
-        </Step>
-      ))}
+                <Box sx={{ mb: 2, mt: 1 }}>{renderActions?.(step, index)}</Box>
+              </motion.div>
+            </StepContent>
+          </Step>
+        );
+      })}
     </Stepper>
   );
 }

@@ -1,14 +1,19 @@
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Card, CardContent, CardActions, Grid, Stack, Typography } from '@mui/material';
-import HubIcon from '@mui/icons-material/Hub';
+import { Box, CardActions, Chip, Grid, Stack, Typography } from '@mui/material';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink } from 'react-router-dom';
 import { apiGet } from '../api/http';
 import { StatusPanel, ServiceStatus } from '../components/StatusPanel';
 import { HONESTY } from '../components/HonestyBadge';
+import { LiquidCard } from '../components/LiquidCard';
+import { LiquidButton } from '../components/LiquidButton';
+import { FeatureIcon } from '../components/FeatureIcon';
+import { HeroPreview } from '../components/HeroPreview';
 import { RAG_PORT, REVIEWER_PORT } from '../config/endpoints';
+import { AURORA } from '../theme';
 
 interface ProjectCard {
   title: string;
@@ -24,9 +29,9 @@ const PROJECTS: ProjectCard[] = [
   {
     title: 'RAG 知识库问答',
     subtitle: 'ai-knowledge-rag · :8080',
-    icon: <HubIcon sx={{ fontSize: 40 }} />,
+    icon: <MenuBookIcon sx={{ fontSize: 26 }} />,
     to: '/rag',
-    color: '#1565c0',
+    color: AURORA.primary, // 冷蓝强调
     badges: (
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
         {HONESTY.ragEmbeddingMock}
@@ -43,9 +48,9 @@ const PROJECTS: ProjectCard[] = [
   {
     title: 'Code Reviewer 代码评审',
     subtitle: 'ai-code-reviewer · :8081',
-    icon: <RateReviewIcon sx={{ fontSize: 40 }} />,
+    icon: <FeatureIcon icon={<RateReviewIcon sx={{ fontSize: 26 }} />} size={48} gradient={AURORA.gradIcon} />,
     to: '/reviewer',
-    color: '#6a1b9a',
+    color: AURORA.secondary, // 紫罗兰强调
     badges: (
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
         {HONESTY.reviewerRuleMock}
@@ -94,23 +99,59 @@ export function Dashboard(): React.ReactElement {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 0.5 }}>
-        项目总览
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        两个 AI 后端项目的统一操作控制台。点击卡片进入对应流水线。
-      </Typography>
+      {/* ============ Hero 区 ============ */}
+      <Box sx={{ mb: 4 }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Chip
+              label="AI Engineering Workspace"
+              size="small"
+              variant="outlined"
+              sx={{
+                mb: 1.5,
+                borderRadius: 999,
+                borderColor: AURORA.borderStrong,
+                color: AURORA.textSecondary,
+              }}
+            />
+            <Typography variant="h4" sx={{ mb: 1, letterSpacing: '-0.02em' }}>
+              AI Projects Console
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 460 }}>
+              面向 RAG 知识库与 Code Reviewer 的统一操作控制台。上传文档、索引向量、发起评审 ——
+              在一个玻璃化工作空间内完成。
+            </Typography>
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+              <LiquidButton component={RouterLink} to="/rag" variant="contained" startIcon={<MenuBookIcon />}>
+                RAG 知识库
+              </LiquidButton>
+              <LiquidButton
+                component={RouterLink}
+                to="/reviewer"
+                variant="outlined"
+                startIcon={<RateReviewIcon />}
+              >
+                Code Reviewer
+              </LiquidButton>
+            </Stack>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <HeroPreview />
+          </Grid>
+        </Grid>
+      </Box>
 
+      {/* ============ 大尺寸功能卡 ============ */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {PROJECTS.map((p) => (
           <Grid item xs={12} md={6} key={p.to}>
-            <Card
+            <LiquidCard
               variant="outlined"
               sx={{ height: '100%', borderTop: `4px solid ${p.color}`, display: 'flex', flexDirection: 'column' }}
             >
-              <CardContent>
+              <Box sx={{ p: 2.5 }}>
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
-                  <Box sx={{ color: p.color }}>{p.icon}</Box>
+                  {p.icon}
                   <Box>
                     <Typography variant="h6">{p.title}</Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -128,9 +169,9 @@ export function Dashboard(): React.ReactElement {
                     </Typography>
                   ))}
                 </Stack>
-              </CardContent>
-              <CardActions sx={{ mt: 'auto', px: 2, pb: 2 }}>
-                <Button
+              </Box>
+              <CardActions sx={{ mt: 'auto', px: 2.5, pb: 2.5 }}>
+                <LiquidButton
                   component={RouterLink}
                   to={p.to}
                   variant="contained"
@@ -138,9 +179,9 @@ export function Dashboard(): React.ReactElement {
                   sx={{ backgroundColor: p.color, '&:hover': { backgroundColor: p.color } }}
                 >
                   进入 {p.title}
-                </Button>
+                </LiquidButton>
               </CardActions>
-            </Card>
+            </LiquidCard>
           </Grid>
         ))}
       </Grid>

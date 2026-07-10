@@ -8,10 +8,8 @@ import {
   AccordionSummary,
   Alert,
   Box,
-  Button,
   Chip,
   CircularProgress,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -22,10 +20,14 @@ import {
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import { reviewerApi } from '../api/reviewer';
 import { toErrorMessage } from '../api/http';
 import { MarkdownReport, CodeBlock } from '../components/MarkdownReport';
 import { HonestyBadge } from '../components/HonestyBadge';
+import { LiquidCard } from '../components/LiquidCard';
+import { LiquidButton } from '../components/LiquidButton';
+import { FeatureIcon } from '../components/FeatureIcon';
 import { ReviewIssueResponse, ReviewReportResponse } from '../api/types';
 
 interface ReportNavState {
@@ -116,10 +118,13 @@ export function ReviewerReport(): React.ReactElement {
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography variant="h4">评审报告</Typography>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/reviewer')} variant="outlined">
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <FeatureIcon icon={<RateReviewIcon sx={{ fontSize: 22 }} />} size={40} />
+          <Typography variant="h4">评审报告</Typography>
+        </Stack>
+        <LiquidButton startIcon={<ArrowBackIcon />} onClick={() => navigate('/reviewer')} variant="outlined">
           返回流水线
-        </Button>
+        </LiquidButton>
       </Stack>
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }} alignItems="center">
@@ -134,7 +139,7 @@ export function ReviewerReport(): React.ReactElement {
         {taskId && <Chip size="small" label={`任务 #${taskId}`} variant="outlined" />}
       </Stack>
 
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <LiquidCard variant="outlined" sx={{ p: 2, mb: 2 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <TextField
             label="任务 ID"
@@ -143,12 +148,12 @@ export function ReviewerReport(): React.ReactElement {
             size="small"
             sx={{ minWidth: 160 }}
           />
-          <Button variant="contained" onClick={() => load(taskInput)} disabled={loading}>
+          <LiquidButton variant="contained" onClick={() => load(taskInput)} disabled={loading}>
             查看
-          </Button>
+          </LiquidButton>
           {loading && <CircularProgress size={20} />}
         </Stack>
-      </Paper>
+      </LiquidCard>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -158,16 +163,16 @@ export function ReviewerReport(): React.ReactElement {
 
       {report && (
         <Stack spacing={2}>
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
               总体评价
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {report.overallAssessment}
             </Typography>
-          </Paper>
+          </LiquidCard>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               评审问题（{issues.length} 条）
             </Typography>
@@ -207,21 +212,21 @@ export function ReviewerReport(): React.ReactElement {
                 </TableBody>
               </Table>
             )}
-          </Paper>
+          </LiquidCard>
 
-          <Paper variant="outlined" sx={{ p: 2 }}>
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Markdown 报告
             </Typography>
             <MarkdownReport content={report.markdownContent} maxHeight={520} />
-          </Paper>
+          </LiquidCard>
 
-          <Accordion>
+          <Accordion sx={{ background: 'transparent', backdropFilter: 'blur(10px)', borderRadius: 2 }}>
             <AccordionSummary expandIcon={<ExpandMore />}>
               <Typography variant="subtitle2">原始 Markdown 源（/report/markdown 裸 String 端点）</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <CodeBlock text={rawMarkdown || '(无原始 Markdown)' } maxHeight={420} />
+              <CodeBlock text={rawMarkdown || '(无原始 Markdown)'} maxHeight={420} />
             </AccordionDetails>
           </Accordion>
         </Stack>

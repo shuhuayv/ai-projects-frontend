@@ -1,0 +1,32 @@
+%% 页面切换流程（App + AnimatePresence + PageTransition）
+sequenceDiagram
+  participant U as 用户
+  participant App as App.tsx
+  participant A as AnimatePresence
+  participant PT as PageTransition
+  participant P as 目标页面
+
+  U->>App: 点击导航 (RouterLink)
+  App->>App: useLocation() 变化
+  App->>A: <Routes key=pathname>
+  A->>PT: 旧页 exit (opacity 0, y -8)
+  A->>PT: 新页 initial (opacity 0, y 12)
+  PT->>PT: animate (opacity 1, y 0, 0.3s easeOut)
+  PT->>P: 渲染页面内容
+  Note over App,P: 路由 path 一字未改
+
+%% 按钮水滴 ripple 流程（LiquidButton）
+sequenceDiagram
+  participant U2 as 用户
+  participant LB as LiquidButton
+  participant M as motion.span
+  participant B as MUI Button
+
+  U2->>LB: pointerdown
+  LB->>LB: 计算 x/y/size (相对 rect)
+  LB->>M: 插入 ripple (key++)
+  M->>M: initial {scale:0, opacity:.45}
+  M->>M: animate {scale:1, opacity:0} 0.6s
+  M-->>LB: onAnimationComplete
+  LB->>LB: 移除该 ripple (filter key)
+  LB->>B: 原生 onClick 仍触发（disableRipple）

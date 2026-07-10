@@ -1,0 +1,59 @@
+graph TD
+  subgraph Infra["基础设施 (T01)"]
+    THEME["src/theme.ts<br/>createTheme(mode:'dark')<br/>INK tokens + 组件覆盖"]
+    CSS["src/index.css<br/>深色 .markdown-body / .pre-block<br/>body 深海基底 + 工具类"]
+    LB["LiquidBackground.tsx<br/>canvas 微粒 + CSS 光斑<br/>reduced-motion / 隐藏暂停 / 粒子上限"]
+    LBTN["LiquidButton.tsx<br/>包装 MUI Button<br/>水滴 ripple (framer-motion)"]
+    LC["LiquidCard.tsx<br/>包装 MUI Card<br/>hover 上浮+冰青边框"]
+    PT["PageTransition.tsx<br/>淡入+上滑 + motionTokens"]
+  end
+
+  subgraph Shell["全局外壳 (T02)"]
+    APP["App.tsx<br/>LiquidBackground + AnimatePresence<br/>+ LiquidButton 导航 (路由 path 不改)"]
+    SW["StepWizard.tsx<br/>active 高亮环 + 成功勾 scale-in"]
+    SP["StatusPanel.tsx<br/>深色玻璃"]
+    HB["HonestyBadge.tsx<br/>精致 Chip (导出符号保留)"]
+    MR["MarkdownReport.tsx<br/>深色玻璃 (导出符号保留)"]
+  end
+
+  subgraph Pages["功能页 (T03)"]
+    DASH["Dashboard.tsx<br/>LiquidCard + LiquidButton<br/>Reviewer 紫→冰青"]
+    RP["RagPipeline.tsx<br/>三态机/activeStep/sessionStorage 不改"]
+    RA["RagAsk.tsx<br/>hasIndexed/告警/500 不改"]
+    RVP["ReviewerPipeline.tsx<br/>四步流程/state 不改"]
+    RVR["ReviewerReport.tsx<br/>报告/Markdown/引用 不改"]
+  end
+
+  THEME --> APP
+  THEME --> SW
+  THEME --> SP
+  THEME --> HB
+  THEME --> MR
+  THEME --> DASH
+  CSS --> MR
+  LB --> APP
+  PT --> APP
+  LBTN --> APP
+  LBTN --> DASH
+  LBTN --> RP
+  LBTN --> RA
+  LBTN --> RVP
+  LBTN --> RVR
+  LC --> DASH
+  LC --> RP
+  LC --> RA
+  LC --> RVP
+  LC --> RVR
+  SW --> RP
+  SW --> RVP
+  SP --> DASH
+  HB --> DASH
+  HB --> RP
+  HB --> RA
+  HB --> RVR
+  MR --> RA
+  MR --> RVR
+
+  style Infra fill:#0B1220,stroke:#3B82C4,color:#E6EDF6
+  style Shell fill:#111827,stroke:#5EC8D8,color:#E6EDF6
+  style Pages fill:#111827,stroke:#3FB98C,color:#E6EDF6

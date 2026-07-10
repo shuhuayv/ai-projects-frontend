@@ -1,11 +1,15 @@
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Stack, TextField, Typography } from '@mui/material';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import { reviewerApi } from '../api/reviewer';
 import { toErrorMessage } from '../api/http';
 import { StepWizard, WizardStep, StepStatus } from '../components/StepWizard';
 import { HONESTY } from '../components/HonestyBadge';
+import { LiquidCard } from '../components/LiquidCard';
+import { LiquidButton } from '../components/LiquidButton';
+import { FeatureIcon } from '../components/FeatureIcon';
 import { ReviewTaskResponse } from '../api/types';
 
 type StepKey = 'create' | 'clone' | 'scan' | 'review';
@@ -35,7 +39,6 @@ export function ReviewerPipeline(): React.ReactElement {
 
   const setStep = (key: StepKey, status: StepStatus, message?: string) =>
     setSteps((prev) => ({ ...prev, [key]: { status, message } }));
-
   const activeStep = (() => {
     if (steps.review.status === 'success') return 3;
     if (steps.scan.status === 'success') return 3;
@@ -126,9 +129,10 @@ export function ReviewerPipeline(): React.ReactElement {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 0.5 }}>
-        Code Reviewer 流水线
-      </Typography>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+        <FeatureIcon icon={<RateReviewIcon sx={{ fontSize: 24 }} />} size={44} />
+        <Typography variant="h4">Code Reviewer 流水线</Typography>
+      </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         依次完成「创建仓库 → 克隆 → 扫描 → 创建评审」，最后查看评审报告。
       </Typography>
@@ -138,7 +142,7 @@ export function ReviewerPipeline(): React.ReactElement {
         {HONESTY.reviewerAiLimited}
       </Stack>
 
-      <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
+      <LiquidCard variant="outlined" sx={{ p: 3, mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
           仓库信息
         </Typography>
@@ -153,9 +157,9 @@ export function ReviewerPipeline(): React.ReactElement {
             <TextField label="语言" value={language} onChange={(e) => setLanguage(e.target.value)} sx={{ minWidth: 160 }} />
           </Stack>
         </Stack>
-      </Paper>
+      </LiquidCard>
 
-      <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
+      <LiquidCard variant="outlined" sx={{ p: 3, mb: 2 }}>
         <StepWizard
           steps={wizardSteps}
           activeStep={activeStep}
@@ -163,44 +167,44 @@ export function ReviewerPipeline(): React.ReactElement {
             switch (step.key) {
               case 'create':
                 return (
-                  <Button variant="contained" onClick={handleCreate} disabled={!formValid || steps.create.status === 'loading'}>
+                  <LiquidButton variant="contained" onClick={handleCreate} disabled={!formValid || steps.create.status === 'loading'}>
                     创建仓库
-                  </Button>
+                  </LiquidButton>
                 );
               case 'clone':
                 return (
-                  <Button
+                  <LiquidButton
                     variant="contained"
                     onClick={handleClone}
                     disabled={repoId === null || steps.clone.status === 'loading' || steps.clone.status === 'success' || steps.scan.status === 'success'}
                   >
                     克隆仓库
-                  </Button>
+                  </LiquidButton>
                 );
               case 'scan':
                 return (
-                  <Button
+                  <LiquidButton
                     variant="contained"
                     onClick={handleScan}
                     disabled={repoId === null || steps.scan.status === 'loading' || steps.review.status === 'success'}
                   >
                     扫描代码
-                  </Button>
+                  </LiquidButton>
                 );
               default:
                 return (
-                  <Button
+                  <LiquidButton
                     variant="contained"
                     onClick={handleReview}
                     disabled={repoId === null || steps.review.status === 'loading' || steps.review.status === 'success'}
                   >
                     创建评审任务
-                  </Button>
+                  </LiquidButton>
                 );
             }
           }}
         />
-      </Paper>
+      </LiquidCard>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

@@ -34,6 +34,16 @@ const TONE_PRESETS: Record<HonestyTone, TonePreset> = {
   info: { label: '说明', color: 'info', icon: <InfoIcon fontSize="small" /> },
 };
 
+/** 按 tone 着色的玻璃描边 / 文字色。 */
+const TONE_STYLE: Record<HonestyTone, { border: string; color: string }> = {
+  mock: { border: 'rgba(155,111,212,0.55)', color: '#B694E6' }, // 紫罗兰
+  real: { border: 'rgba(91,185,140,0.60)', color: '#7FD3A8' }, // success
+  pseudo: { border: 'rgba(106,160,224,0.55)', color: '#9CC2F0' }, // 冰青 / info 蓝
+  limited: { border: 'rgba(106,160,224,0.55)', color: '#9CC2F0' }, // 冰青
+  demo: { border: 'rgba(106,160,224,0.55)', color: '#9CC2F0' }, // info 蓝
+  info: { border: 'rgba(106,160,224,0.55)', color: '#9CC2F0' }, // info 蓝
+};
+
 export interface HonestyBadgeProps {
   tone: HonestyTone;
   /** 自定义文案，覆盖默认 label。 */
@@ -44,10 +54,11 @@ export interface HonestyBadgeProps {
 }
 
 /**
- * 诚实边界徽标组件：以醒目的 Chip 标注当前能力的真实/演示边界。
+ * 诚实边界徽标组件：以玻璃 pill 标注当前能力的真实/演示边界。
  */
 export function HonestyBadge({ tone, label, tooltip, size = 'small' }: HonestyBadgeProps): React.ReactElement {
   const preset = TONE_PRESETS[tone];
+  const style = TONE_STYLE[tone];
   return (
     <Chip
       size={size}
@@ -56,7 +67,13 @@ export function HonestyBadge({ tone, label, tooltip, size = 'small' }: HonestyBa
       label={label ?? preset.label}
       variant="outlined"
       title={tooltip}
-      sx={{ fontWeight: 600 }}
+      sx={{
+        fontWeight: 600,
+        borderRadius: 999,
+        backdropFilter: 'blur(6px)',
+        borderColor: style.border,
+        color: style.color,
+      }}
     />
   );
 }
@@ -73,7 +90,7 @@ export const HONESTY = {
   ragChatMock: <HonestyBadge tone="mock" label="Chat: Mock" tooltip="后端默认 AI_MOCK_ENABLED=true" />,
   reviewerRuleMock: <HonestyBadge tone="mock" label="Mock 规则评审" tooltip="基于内置规则生成评审意见" />,
   reviewerAiLimited: (
-    <HonestyBadge tone="limited" label="真实 AI: 仅前 3 文件" tooltip="真实 AI 当前仅评审默认前 3 个核心文件，最多少量 issues" />
+    <HonestyBadge tone="limited" label="真实 AI: 仅前 3 文件" tooltip="真实 AI 当前仅评审默认前3个核心文件，最多少量 issues" />
   ),
   localDemo: <HonestyBadge tone="demo" label="本地 Demo · 无登录权限" tooltip="本地演示，无登录/权限，无高并发承诺" />,
 } as const;

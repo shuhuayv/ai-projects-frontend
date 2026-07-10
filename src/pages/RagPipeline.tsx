@@ -1,13 +1,17 @@
 import React from 'react';
 import { useRef, useState } from 'react';
-import { Alert, Box, Button, Paper, Stack, Typography, Divider, Chip } from '@mui/material';
+import { Alert, Box, Divider, Chip, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { Link as RouterLink } from 'react-router-dom';
 import { ragApi } from '../api/rag';
 import { toErrorMessage } from '../api/http';
 import { StepWizard, WizardStep, StepStatus } from '../components/StepWizard';
 import { HONESTY } from '../components/HonestyBadge';
+import { LiquidCard } from '../components/LiquidCard';
+import { LiquidButton } from '../components/LiquidButton';
+import { FeatureIcon } from '../components/FeatureIcon';
 import { DocumentUploadResponse, DocumentParseResponse, DocumentIndexResponse } from '../api/types';
 
 type StepKey = 'upload' | 'parse' | 'index';
@@ -33,7 +37,6 @@ export function RagPipeline(): React.ReactElement {
 
   const setStep = (key: StepKey, status: StepStatus, message?: string) =>
     setSteps((prev) => ({ ...prev, [key]: { status, message } }));
-
   const activeStep = (() => {
     if (steps.index.status === 'success') return 2;
     if (steps.parse.status === 'success') return 2; // parse 完成 → 激活 index 步骤（显示"生成向量索引"按钮）
@@ -115,9 +118,10 @@ export function RagPipeline(): React.ReactElement {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 0.5 }}>
-        RAG 文档流水线
-      </Typography>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+        <FeatureIcon icon={<MenuBookIcon sx={{ fontSize: 24 }} />} size={44} />
+        <Typography variant="h4">RAG 文档流水线</Typography>
+      </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         上传文档并完成「解析 → 向量化」后，即可前往问答页体验 RAG 问答。
       </Typography>
@@ -128,7 +132,7 @@ export function RagPipeline(): React.ReactElement {
         {HONESTY.ragChatReal}
       </Stack>
 
-      <Paper variant="outlined" sx={{ p: 3, mb: 2 }}>
+      <LiquidCard variant="outlined" sx={{ p: 3, mb: 2 }}>
         <StepWizard
           steps={wizardSteps}
           activeStep={activeStep}
@@ -136,7 +140,7 @@ export function RagPipeline(): React.ReactElement {
             if (step.key === 'upload') {
               return (
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <Button
+                  <LiquidButton
                     variant="contained"
                     component="label"
                     startIcon={<UploadFileIcon />}
@@ -144,10 +148,10 @@ export function RagPipeline(): React.ReactElement {
                   >
                     选择文件
                     <input ref={fileInputRef} hidden accept={ACCEPT} type="file" onChange={onFileChange} />
-                  </Button>
-                  <Button variant="contained" onClick={handleUpload} disabled={!file || steps.upload.status === 'loading'}>
+                  </LiquidButton>
+                  <LiquidButton variant="contained" onClick={handleUpload} disabled={!file || steps.upload.status === 'loading'}>
                     上传文档
-                  </Button>
+                  </LiquidButton>
                   {file && (
                     <Chip size="small" label={file.name} color="primary" variant="outlined" />
                   )}
@@ -156,27 +160,27 @@ export function RagPipeline(): React.ReactElement {
             }
             if (step.key === 'parse') {
               return (
-                <Button
+                <LiquidButton
                   variant="contained"
                   onClick={handleParse}
                   disabled={docId === null || steps.parse.status === 'loading' || steps.index.status === 'success'}
                 >
                   解析并切分
-                </Button>
+                </LiquidButton>
               );
             }
             return (
-              <Button
+              <LiquidButton
                 variant="contained"
                 onClick={handleIndex}
                 disabled={docId === null || steps.index.status === 'loading' || steps.index.status === 'success'}
               >
                 生成向量索引
-              </Button>
+              </LiquidButton>
             );
           }}
         />
-      </Paper>
+      </LiquidCard>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -185,7 +189,7 @@ export function RagPipeline(): React.ReactElement {
       )}
 
       {steps.index.status === 'success' && indexResp && (
-        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <LiquidCard variant="outlined" sx={{ p: 2, mb: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
             处理结果
           </Typography>
@@ -197,14 +201,14 @@ export function RagPipeline(): React.ReactElement {
             <Chip label="status: INDEXED" color="success" variant="outlined" />
           </Stack>
           <Divider sx={{ my: 1.5 }} />
-          <Button component={RouterLink} to="/rag/ask" variant="outlined" endIcon={<ArrowForwardIcon />}>
+          <LiquidButton component={RouterLink} to="/rag/ask" variant="outlined" endIcon={<ArrowForwardIcon />}>
             前往 RAG 问答
-          </Button>
-        </Paper>
+          </LiquidButton>
+        </LiquidCard>
       )}
 
       {steps.parse.status === 'success' && steps.index.status !== 'success' && (
-        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <LiquidCard variant="outlined" sx={{ p: 2, mb: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
             处理结果
           </Typography>
@@ -215,7 +219,7 @@ export function RagPipeline(): React.ReactElement {
           <Alert severity="info" sx={{ mt: 1.5 }}>
             已完成解析，请继续生成向量索引后再问答。
           </Alert>
-        </Paper>
+        </LiquidCard>
       )}
     </Box>
   );
