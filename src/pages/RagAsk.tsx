@@ -23,7 +23,7 @@ import { isRealChatProvider } from '../api/chat';
 import { ApiClientError, toErrorMessage } from '../api/http';
 import { Link as RouterLink } from 'react-router-dom';
 import { RagAskResponse } from '../api/types';
-import { MarkdownReport, CodeBlock } from '../components/MarkdownReport';
+import { MarkdownReport, PromptPreview } from '../components/MarkdownReport';
 import { HONESTY } from '../components/HonestyBadge';
 import { LiquidCard } from '../components/LiquidCard';
 import { LiquidButton } from '../components/LiquidButton';
@@ -89,10 +89,22 @@ export function RagAsk(): React.ReactElement {
       const msg = toErrorMessage(e);
       const isServerError =
         e instanceof ApiClientError && (e.status === 500 || /服务器内部|Internal\s*Server/i.test(msg));
+      const isNoContext = /未检索到|无有效上下文|没有可检索|尚未索引/i.test(msg);
+      const isRateLimit = /速率限制|请求频率|请求过多|1302|1305|429/i.test(msg);
+      const isTimeout = /响应超时|Read timed out|timeout/i.test(msg);
+      const isChatError = /AI API|返回内容为空|Chat|回答生成/i.test(msg);
       setError(
-        isServerError
-          ? '当前没有可检索的已索引文档，或 Qdrant / 后端检索失败，请先完成文档索引。'
-          : msg,
+        isRateLimit
+          ? '智谱模型当前请求过多，系统已自动重试；请等待 30-60 秒后再提问。'
+          : isTimeout
+            ? '智谱模型响应超时，文档检索正常；请稍后重新提问。'
+            : isNoContext
+          ? '当前没有可检索的已索引文档，请先完成文档解析与向量化索引。'
+          : isChatError
+            ? '文档检索已完成，但回答生成失败，请检查 Chat 模型配置后重试。'
+            : isServerError
+              ? 'RAG 后端处理失败，请查看 rag-fixed.log；这不代表文档一定未索引。'
+              : msg,
       );
     } finally {
       setLoading(false);
@@ -123,7 +135,9 @@ export function RagAsk(): React.ReactElement {
         {/* 检索层：真实语义检索（真实 Embedding） */}
         {HONESTY.ragRetrieveReal}
         {/* 生成层：由 live 响应决定 */}
-        {isRealChat ? HONESTY.ragChatReal : HONESTY.ragChatMock}
+        {resp ? (isRealChat ? HONESTY.ragChatReal : HONESTY.ragChatMock) : (
+          <Chip size="small" label="Chat: 等待响应" variant="outlined" />
+        )}
       </Stack>
 
       {!hasIndexed && (
@@ -252,7 +266,7 @@ export function RagAsk(): React.ReactElement {
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Prompt 预览
             </Typography>
-            <CodeBlock text={resp.promptPreview || '(空)'} maxHeight={300} />
+            <PromptPreview text={resp.promptPreview || '(空)'} maxHeight={480} />
           </LiquidCard>
         </Stack>
       )}

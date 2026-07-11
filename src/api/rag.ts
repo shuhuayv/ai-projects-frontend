@@ -39,7 +39,7 @@ export const ragApi = {
 
   /** RAG 问答（检索层为真实 Embedding；生成层 Chat 支持真实智谱 / Mock）。 */
   ask(question: string, topK = 5): Promise<RagAskResponse> {
-    return apiPost<RagAskResponse>('/api/rag/ask', { question, topK });
+    return apiPost<RagAskResponse>('/api/rag/ask', { question, topK }, { timeout: 210_000 });
   },
 };
 

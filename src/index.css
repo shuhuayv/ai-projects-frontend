@@ -62,3 +62,285 @@ body {
   background: linear-gradient(120deg, #8AA6F2, #B694E6, #E0A0C8);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+
+/* ============ UI Polish v1：Prompt 与 GFM 报告 ============ */
+.markdown-report-paper,
+.prompt-preview {
+  scrollbar-gutter: stable;
+}
+
+.markdown-body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  font-size: 15px;
+  line-height: 1.78;
+  letter-spacing: 0.005em;
+  color: rgba(244, 246, 255, 0.92);
+}
+
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+.markdown-body h2 { margin-top: 1.35em; }
+.markdown-body h3 {
+  margin: 1.25em 0 0.65em;
+  font-size: 1.13rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.markdown-body h4 {
+  margin: 1.15em 0 0.6em;
+  color: #d9e3ff;
+  font-size: 0.98rem;
+}
+.markdown-body p { margin: 0.7em 0; }
+.markdown-body strong { color: #f8f9ff; font-weight: 700; }
+
+.markdown-table-scroll {
+  width: 100%;
+  margin: 1rem 0;
+  overflow: auto;
+  border: 1px solid rgba(180, 190, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(9, 13, 38, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.markdown-table-scroll table {
+  width: 100%;
+  min-width: 960px;
+  margin: 0;
+  border: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.markdown-table-scroll th,
+.markdown-table-scroll td {
+  padding: 13px 15px;
+  border-width: 0 1px 1px 0;
+  border-color: rgba(180, 190, 255, 0.13);
+  line-height: 1.65;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.markdown-table-scroll th:last-child,
+.markdown-table-scroll td:last-child { border-right: 0; }
+.markdown-table-scroll tr:last-child td { border-bottom: 0; }
+.markdown-table-scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(22, 29, 66, 0.97);
+  color: #dce5ff;
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+.markdown-table-scroll tbody tr:nth-child(even) { background: rgba(138, 166, 242, 0.035); }
+.markdown-table-scroll tbody tr:hover { background: rgba(91, 127, 224, 0.085); }
+.markdown-table-scroll td:first-child { width: 52px; text-align: center; font-weight: 700; color: #aabdf7; }
+.markdown-table-scroll td:nth-child(2) {
+  min-width: 300px;
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+  font-size: 0.78rem;
+  color: #cad6fa;
+}
+.markdown-table-scroll td:nth-child(3),
+.markdown-table-scroll td:nth-child(4) { min-width: 116px; }
+.markdown-table-scroll td:nth-child(5),
+.markdown-table-scroll td:nth-child(6) { min-width: 260px; }
+
+.prompt-preview {
+  background:
+    linear-gradient(145deg, rgba(91, 127, 224, 0.075), rgba(155, 111, 212, 0.045)),
+    rgba(8, 12, 34, 0.58) !important;
+  border-color: rgba(138, 166, 242, 0.2) !important;
+}
+.prompt-preview h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(138, 166, 242, 0.16);
+  color: #aabdf7;
+}
+.prompt-preview h3:first-child { margin-top: 0; }
+.prompt-preview h4 {
+  margin: 1rem 0 0.55rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid rgba(138, 166, 242, 0.14);
+  border-radius: 10px;
+  background: rgba(138, 166, 242, 0.055);
+  color: #dbe4ff;
+}
+.prompt-preview ul {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.prompt-preview li {
+  margin: 0.42rem 0;
+  color: rgba(230, 235, 255, 0.78);
+}
+.prompt-preview p {
+  color: rgba(240, 243, 255, 0.88);
+  line-height: 1.82;
+}
+.prompt-preview hr {
+  height: 1px;
+  margin: 1.15rem 0;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(138, 166, 242, 0.25), transparent);
+}
+
+@media (max-width: 720px) {
+  .markdown-body { font-size: 14px; }
+  .markdown-table-scroll table { min-width: 820px; }
+  .markdown-table-scroll th,
+  .markdown-table-scroll td { padding: 11px 12px; }
+}
+
+/* ============ UI Polish v2：Reviewer Issues 响应式卡片 ============ */
+.issue-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0.85rem 0 1.5rem;
+}
+
+.issue-card {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid rgba(180, 190, 255, 0.16);
+  border-radius: 15px;
+  background:
+    linear-gradient(145deg, rgba(91, 127, 224, 0.065), rgba(155, 111, 212, 0.035)),
+    rgba(10, 14, 40, 0.56);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.issue-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(138, 166, 242, 0.3);
+  background-color: rgba(18, 24, 57, 0.72);
+}
+
+.issue-card-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 13px;
+}
+
+.issue-number,
+.issue-risk,
+.issue-category {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.issue-number {
+  color: #b8c8fa;
+  border: 1px solid rgba(138, 166, 242, 0.28);
+  background: rgba(91, 127, 224, 0.1);
+}
+
+.issue-category {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #d7c4f5;
+  border: 1px solid rgba(182, 148, 230, 0.25);
+  background: rgba(155, 111, 212, 0.1);
+  letter-spacing: 0.025em;
+}
+
+.issue-risk-suggestion {
+  color: #9ed8ba;
+  border: 1px solid rgba(91, 185, 140, 0.3);
+  background: rgba(91, 185, 140, 0.11);
+}
+.issue-risk-warning {
+  color: #f0c484;
+  border: 1px solid rgba(224, 164, 92, 0.32);
+  background: rgba(224, 164, 92, 0.11);
+}
+.issue-risk-error {
+  color: #f0a0b2;
+  border: 1px solid rgba(226, 114, 140, 0.34);
+  background: rgba(226, 114, 140, 0.11);
+}
+
+.issue-file {
+  min-width: 0;
+  margin-bottom: 14px;
+  padding: 10px 11px;
+  border-radius: 10px;
+  background: rgba(5, 9, 29, 0.46);
+  border: 1px solid rgba(180, 190, 255, 0.1);
+}
+
+.issue-file code {
+  display: block;
+  margin-top: 5px;
+  padding: 0;
+  color: #c9d5f8;
+  background: transparent;
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.issue-field-label {
+  color: rgba(180, 195, 238, 0.67);
+  font-size: 0.7rem;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.issue-content-block {
+  min-width: 0;
+  margin-top: 11px;
+}
+
+.issue-content-block p {
+  margin: 6px 0 0;
+  color: rgba(240, 243, 255, 0.88);
+  font-size: 0.86rem;
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+}
+
+.issue-suggestion-block {
+  padding: 11px 12px;
+  border-left: 3px solid rgba(91, 185, 140, 0.58);
+  border-radius: 0 10px 10px 0;
+  background: rgba(91, 185, 140, 0.065);
+}
+.issue-suggestion-block .issue-field-label { color: rgba(132, 211, 169, 0.82); }
+
+@media (max-width: 1080px) {
+  .issue-card-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .issue-card { padding: 14px; }
+  .issue-card-grid { gap: 11px; }
+}
