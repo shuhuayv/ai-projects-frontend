@@ -1,11 +1,23 @@
 import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { Box, CardActions, Chip, Grid, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  CardActions,
+  Chip,
+  CircularProgress,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import StorageIcon from '@mui/icons-material/Storage';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink } from 'react-router-dom';
-import { apiGet } from '../api/http';
+import { apiGet, toErrorMessage } from '../api/http';
+import { getEmbeddingStatus } from '../api/rag';
+import { EmbeddingStatus } from '../api/types';
 import { StatusPanel, ServiceStatus } from '../components/StatusPanel';
 import { HONESTY } from '../components/HonestyBadge';
 import { LiquidCard } from '../components/LiquidCard';
@@ -34,15 +46,14 @@ const PROJECTS: ProjectCard[] = [
     color: AURORA.primary, // 冷蓝强调
     badges: (
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        {HONESTY.ragEmbeddingMock}
-        {HONESTY.ragRetrievePseudo}
-        {HONESTY.ragChatReal}
+        {HONESTY.ragRetrieveReal}
+        {HONESTY.ragChatRuntime}
       </Stack>
     ),
     notes: [
       '文档上传 → 解析切分 → 向量化索引',
       '问答：检索增强生成，返回 answer / references / promptPreview',
-      'Chat 支持真实智谱（后端 AI_MOCK_ENABLED=false）',
+      '检索使用真实 Embedding；Chat 模式以每次问答响应为准（首页不预探测）',
     ],
   },
   {
@@ -64,6 +75,123 @@ const PROJECTS: ProjectCard[] = [
     ],
   },
 ];
+
+/** 单个状态字段（key-value，空值降级为 '-'）。 */
+function StatusField({
+  label,
+  value,
+  emphasize,
+}: {
+  label: string;
+  value?: React.ReactNode;
+  emphasize?: boolean;
+}): React.ReactElement {
+  return (
+    <Grid item xs={6} sm={4} md={3}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{ fontWeight: emphasize ? 700 : 600, color: emphasize ? AURORA.textPrimary : AURORA.textSecondary }}
+      >
+        {value ?? '-'}
+      </Typography>
+    </Grid>
+  );
+}
+
+/** Embedding 服务状态卡：独立调用 /api/embedding/status，失败不影响下方流水线/问答入口。 */
+function EmbeddingStatusCard(): React.ReactElement {
+  const [data, setData] = useState<EmbeddingStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getEmbeddingStatus()
+      .then((res) => {
+        if (!active) return;
+        setData(res);
+        setError('');
+      })
+      .catch((e: unknown) => {
+        if (!active) return;
+        setData(null);
+        setError(toErrorMessage(e));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isReal = !!data && (data.mode === 'REAL' || data.provider === 'zhipu');
+  const modeText = data?.mode === 'REAL' ? 'REAL' : data?.mode === 'MOCK' ? 'MOCK' : '-';
+
+  return (
+    <LiquidCard variant="outlined" sx={{ p: 2.5, mb: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <StorageIcon sx={{ fontSize: 22, color: AURORA.info }} />
+          <Typography variant="h6">Embedding 状态</Typography>
+        </Stack>
+        {loading ? (
+          <CircularProgress size={16} />
+        ) : error ? (
+          <Chip size="small" label="状态接口不可用" color="error" variant="outlined" />
+        ) : (
+          <Chip
+            size="small"
+            label={isReal ? '服务可用' : '已连接'}
+            color={isReal ? 'success' : 'default'}
+            variant="outlined"
+          />
+        )}
+      </Stack>
+
+      {error ? (
+        <Alert severity="error">
+          状态接口不可用：{error}（不影响下方文档流水线与问答入口）
+        </Alert>
+      ) : loading ? (
+        <Typography variant="body2" color="text.secondary">
+          正在获取 Embedding 服务状态…
+        </Typography>
+      ) : data ? (
+        <Grid container spacing={1.5}>
+          <Grid item xs={6} sm={4} md={3}>
+            <Typography variant="caption" color="text.secondary" display="block">
+              Mode
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: isReal ? AURORA.success : AURORA.warning }}>
+              {modeText}
+            </Typography>
+          </Grid>
+          <StatusField label="Provider" value={data.provider} />
+          <StatusField label="Model" value={data.model} />
+          <StatusField label="Dimensions" value={data.dimensions != null ? String(data.dimensions) : '-'} />
+          <StatusField
+            label="Fallback"
+            value={data.fallbackEnabled != null ? (data.fallbackEnabled ? '启用' : '未启用') : '-'}
+          />
+          <StatusField label="Collection" value={data.collectionName} />
+          <StatusField
+            label="API Key"
+            value={data.apiKeyConfigured != null ? (data.apiKeyConfigured ? '已配置' : '未配置') : '-'}
+          />
+        </Grid>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          未返回状态数据。
+        </Typography>
+      )}
+    </LiquidCard>
+  );
+}
 
 /** 轻量探测：用已代理的列表接口判断后端是否可达。 */
 async function probe(path: string): Promise<{ reachable: boolean; error?: string }> {
@@ -140,6 +268,9 @@ export function Dashboard(): React.ReactElement {
           </Grid>
         </Grid>
       </Box>
+
+      {/* ============ Embedding 状态卡（独立调用 /api/embedding/status） ============ */}
+      <EmbeddingStatusCard />
 
       {/* ============ 大尺寸功能卡 ============ */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

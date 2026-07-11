@@ -88,9 +88,22 @@ export const HONESTY = {
   ),
   ragChatReal: <HonestyBadge tone="real" label="Chat: 真实智谱" tooltip="后端 AI_MOCK_ENABLED=false 时调用真实智谱" />,
   ragChatMock: <HonestyBadge tone="mock" label="Chat: Mock" tooltip="后端默认 AI_MOCK_ENABLED=true" />,
+  ragChatRuntime: (
+    <HonestyBadge
+      tone="info"
+      label="Chat 模式：以问答响应为准"
+      tooltip="Chat 真实 / Mock 以每次问答接口响应为准，首页不预探测"
+    />
+  ),
   reviewerRuleMock: <HonestyBadge tone="mock" label="Mock 规则评审" tooltip="基于内置规则生成评审意见" />,
   reviewerAiLimited: (
     <HonestyBadge tone="limited" label="真实 AI: 仅前 3 文件" tooltip="真实 AI 当前仅评审默认前3个核心文件，最多少量 issues" />
   ),
   localDemo: <HonestyBadge tone="demo" label="本地 Demo · 无登录权限" tooltip="本地演示，无登录/权限，无高并发承诺" />,
+  ragEmbeddingReal: (
+    <HonestyBadge tone="real" label="Embedding: 真实向量" tooltip="使用真实语义向量（非 SHA-256 伪向量）" />
+  ),
+  ragRetrieveReal: (
+    <HonestyBadge tone="real" label="检索: 真实语义检索" tooltip="references 为真实语义召回（真实 Embedding）" />
+  ),
 } as const;

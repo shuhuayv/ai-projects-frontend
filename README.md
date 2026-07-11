@@ -72,7 +72,7 @@ npm run preview
 
 | 前端请求前缀 | 转发到 |
 |---|---|
-| `/api/rag` `/api/documents` `/api/search` | `http://localhost:8080`（RAG） |
+| `/api/rag` `/api/documents` `/api/search` `/api/embedding` | `http://localhost:8080`（RAG） |
 | `/api/repos` `/api/reviews` | `http://localhost:8081`（Code Reviewer） |
 
 > 生产部署仍需反向代理 / Nginx 或后端 CorsConfig（见 `patches/`）。
@@ -92,7 +92,7 @@ npm run preview
 
 ## 诚实边界（UI 已全局强制呈现，演示时照实说）
 
-- **RAG 检索是演示性伪向量**：Embedding 仍是 Mock（SHA-256 哈希伪向量），`references` 非真实语义召回。Chat 已支持真实智谱，但检索内核未接真实 Embedding。
+- **RAG 检索使用真实 Embedding**：检索层为真实智谱 embedding-3 1024 维向量，`references` 为真实语义召回；答案生成（Chat）模式以每次问答接口响应为准（本地 Demo 验证组合含真实 Zhipu Chat，但首页不预探测，非生产环境）。
 - **Code Reviewer 真实 AI 覆盖有限**：仅评前 3 文件 / 最多少量 issues；不是商业级 SaaS。
 - **本地 Demo**：无登录 / 无权限 / 无高并发承诺。
 
@@ -102,7 +102,7 @@ npm run preview
 - ❌ SSE / 流式输出（当前用 loading 态）
 - ❌ 部署 / 公网发布
 - ❌ 私有仓库凭证 / clone 私有库
-- ❌ 真实 Embedding 接入（仅标注，未实现）
+- ✅ 真实 Embedding 检索 + 真实 Qdrant 检索 + 真实 Zhipu Chat 本地 Demo 已验证；Chat 模式以每次问答响应为准（非生产环境）。
 - ❌ 后端 `.git` 操作（补丁由你本地应用、提交）
 
 详见 `DELIVERY-RUN-INSTRUCTIONS.md` 与 `DELIVERY-QA-REPORT.md`。

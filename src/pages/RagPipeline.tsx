@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRef, useState } from 'react';
-import { Alert, Box, Divider, Chip, Stack, Typography } from '@mui/material';
+import { Alert, Box, Chip, Divider, Grid, Stack, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -13,6 +13,7 @@ import { LiquidCard } from '../components/LiquidCard';
 import { LiquidButton } from '../components/LiquidButton';
 import { FeatureIcon } from '../components/FeatureIcon';
 import { DocumentUploadResponse, DocumentParseResponse, DocumentIndexResponse } from '../api/types';
+import { AURORA } from '../theme';
 
 type StepKey = 'upload' | 'parse' | 'index';
 type StepState = Record<StepKey, { status: StepStatus; message?: string }>;
@@ -89,7 +90,11 @@ export function RagPipeline(): React.ReactElement {
       const resp = await ragApi.indexDocument(docId);
       setIndexResp(resp);
       setStep('index', 'success', `写入 ${resp.vectorCount} 条向量 · ${resp.collectionName}`);
-      try { sessionStorage.setItem('ragIndexedDocId', String(resp.documentId)); } catch { /* ignore */ }
+      try {
+        sessionStorage.setItem('ragIndexedDocId', String(resp.documentId));
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       setStep('index', 'error', toErrorMessage(e));
     }
@@ -111,7 +116,7 @@ export function RagPipeline(): React.ReactElement {
     {
       key: 'index',
       label: '3. 向量化索引',
-      description: '生成 Embedding（当前为 Mock 伪向量）并写入向量库。',
+      description: '生成 Embedding（真实语义向量）并写入向量库。',
       ...steps.index,
     },
   ];
@@ -127,9 +132,8 @@ export function RagPipeline(): React.ReactElement {
       </Typography>
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-        {HONESTY.ragEmbeddingMock}
-        {HONESTY.ragRetrievePseudo}
-        {HONESTY.ragChatReal}
+        {HONESTY.ragRetrieveReal}
+        {HONESTY.ragChatRuntime}
       </Stack>
 
       <LiquidCard variant="outlined" sx={{ p: 3, mb: 2 }}>
@@ -149,12 +153,14 @@ export function RagPipeline(): React.ReactElement {
                     选择文件
                     <input ref={fileInputRef} hidden accept={ACCEPT} type="file" onChange={onFileChange} />
                   </LiquidButton>
-                  <LiquidButton variant="contained" onClick={handleUpload} disabled={!file || steps.upload.status === 'loading'}>
+                  <LiquidButton
+                    variant="contained"
+                    onClick={handleUpload}
+                    disabled={!file || steps.upload.status === 'loading'}
+                  >
                     上传文档
                   </LiquidButton>
-                  {file && (
-                    <Chip size="small" label={file.name} color="primary" variant="outlined" />
-                  )}
+                  {file && <Chip size="small" label={file.name} color="primary" variant="outlined" />}
                 </Stack>
               );
             }
@@ -190,20 +196,97 @@ export function RagPipeline(): React.ReactElement {
 
       {steps.index.status === 'success' && indexResp && (
         <LiquidCard variant="outlined" sx={{ p: 2, mb: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
             处理结果
           </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {uploadResp && <Chip label={`文档ID: ${uploadResp.id}`} variant="outlined" />}
-            {parseResp && <Chip label={`Chunk 数: ${parseResp.chunkCount}`} color="primary" variant="outlined" />}
-            <Chip label={`向量数: ${indexResp.vectorCount}`} color="secondary" variant="outlined" />
-            <Chip label={`集合: ${indexResp.collectionName}`} variant="outlined" />
-            <Chip label="status: INDEXED" color="success" variant="outlined" />
-          </Stack>
-          <Divider sx={{ my: 1.5 }} />
-          <LiquidButton component={RouterLink} to="/rag/ask" variant="outlined" endIcon={<ArrowForwardIcon />}>
-            前往 RAG 问答
-          </LiquidButton>
+          <Grid container spacing={1.5}>
+            {uploadResp && (
+              <Grid item xs={6} sm={4} md={3}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  文档ID
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {uploadResp.id}
+                </Typography>
+              </Grid>
+            )}
+            {parseResp && (
+              <Grid item xs={6} sm={4} md={3}>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Chunk 数
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: AURORA.primaryLight }}>
+                  {parseResp.chunkCount}
+                </Typography>
+              </Grid>
+            )}
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                向量数
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: AURORA.secondaryLight }}>
+                {indexResp.vectorCount}
+              </Typography>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                状态
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: AURORA.success }}>
+                {indexResp.status}
+              </Typography>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                Embedding Provider
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {indexResp.embeddingProvider ?? '-'}
+              </Typography>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                Embedding Model
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {indexResp.embeddingModel ?? '-'}
+              </Typography>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                维度
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {indexResp.embeddingDimensions != null ? indexResp.embeddingDimensions : '-'}
+              </Typography>
+            </Grid>
+            <Grid item xs={6} sm={4} md={3}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                索引版本
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {indexResp.indexVersion ?? '-'}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                集合 (Collection)
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, wordBreak: 'break-word' }}>
+                {indexResp.collectionName ?? '-'}
+              </Typography>
+            </Grid>
+          </Grid>
+          {indexResp.message && (
+            <Alert severity="info" sx={{ mt: 1.5 }}>
+              {indexResp.message}
+            </Alert>
+          )}
+          <Box sx={{ mt: 1.5 }}>
+            <LiquidButton component={RouterLink} to="/rag/ask" variant="outlined" endIcon={<ArrowForwardIcon />}>
+              前往 RAG 问答
+            </LiquidButton>
+          </Box>
         </LiquidCard>
       )}
 

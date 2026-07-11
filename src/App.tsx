@@ -86,7 +86,8 @@ function GlobalHonestyBanner(): React.ReactElement {
   return (
     <Alert severity="info" sx={{ mb: 2 }}>
       <strong>本地 Demo · 诚实边界：</strong> 无登录/权限、无高并发承诺。
-      RAG 的 Embedding 为 SHA-256 伪向量、检索为演示性伪向量（references 非真实语义召回）；
+      RAG 检索使用真实智谱 embedding-3 1024 维向量（references 为真实语义召回）；
+      Chat 生成模式以每次问答接口响应为准（真实 / Mock 不在此预先声明）。
       Code Reviewer 真实 AI 当前仅评审默认前 3 个核心文件、最多少量 issues，非完整商业 SaaS。
     </Alert>
   );

@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react';
 //   /api/rag       -> ai-knowledge-rag  (http://localhost:8080)
 //   /api/documents -> ai-knowledge-rag  (http://localhost:8080)
 //   /api/search    -> ai-knowledge-rag  (http://localhost:8080)
+//   /api/embedding -> ai-knowledge-rag  (http://localhost:8080)
 //   /api/repos     -> ai-code-reviewer  (http://localhost:8081)
 //   /api/reviews   -> ai-code-reviewer  (http://localhost:8081)
 export default defineConfig({
@@ -17,6 +18,7 @@ export default defineConfig({
       '/api/rag': 'http://localhost:8080',
       '/api/documents': 'http://localhost:8080',
       '/api/search': 'http://localhost:8080',
+      '/api/embedding': 'http://localhost:8080',
       '/api/repos': 'http://localhost:8081',
       '/api/reviews': 'http://localhost:8081',
     },

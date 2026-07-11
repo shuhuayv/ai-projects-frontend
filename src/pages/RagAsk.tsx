@@ -7,30 +7,59 @@ import {
   CircularProgress,
   Divider,
   FormControl,
+  Grid,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
 import { ragApi } from '../api/rag';
+import { isRealChatProvider } from '../api/chat';
 import { ApiClientError, toErrorMessage } from '../api/http';
 import { Link as RouterLink } from 'react-router-dom';
 import { RagAskResponse } from '../api/types';
 import { MarkdownReport, CodeBlock } from '../components/MarkdownReport';
-import { HONESTY, HonestyBadge } from '../components/HonestyBadge';
+import { HONESTY } from '../components/HonestyBadge';
 import { LiquidCard } from '../components/LiquidCard';
 import { LiquidButton } from '../components/LiquidButton';
 import { FeatureIcon } from '../components/FeatureIcon';
+import { ReferenceCard } from '../components/ReferenceCard';
+import { AURORA } from '../theme';
+
+/** 单字段展示（空值降级为 '-'）。 */
+function MetaField({
+  label,
+  value,
+  emphasize,
+  positive,
+}: {
+  label: string;
+  value?: React.ReactNode;
+  emphasize?: boolean;
+  positive?: boolean;
+}): React.ReactElement {
+  return (
+    <Grid item xs={6} sm={4} md={3}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: emphasize ? 700 : 600,
+          color: positive ? AURORA.success : emphasize ? AURORA.textPrimary : AURORA.textSecondary,
+        }}
+      >
+        {value ?? '-'}
+      </Typography>
+    </Grid>
+  );
+}
 
 export function RagAsk(): React.ReactElement {
   const [question, setQuestion] = useState('');
@@ -39,7 +68,11 @@ export function RagAsk(): React.ReactElement {
   const [error, setError] = useState('');
   const [resp, setResp] = useState<RagAskResponse | null>(null);
   const [hasIndexed] = useState<boolean>(() => {
-    try { return sessionStorage.getItem('ragIndexedDocId') != null; } catch { return false; }
+    try {
+      return sessionStorage.getItem('ragIndexedDocId') != null;
+    } catch {
+      return false;
+    }
   });
 
   const handleAsk = async () => {
@@ -55,8 +88,7 @@ export function RagAsk(): React.ReactElement {
     } catch (e) {
       const msg = toErrorMessage(e);
       const isServerError =
-        e instanceof ApiClientError &&
-        (e.status === 500 || /服务器内部|Internal\s*Server/i.test(msg));
+        e instanceof ApiClientError && (e.status === 500 || /服务器内部|Internal\s*Server/i.test(msg));
       setError(
         isServerError
           ? '当前没有可检索的已索引文档，或 Qdrant / 后端检索失败，请先完成文档索引。'
@@ -69,9 +101,13 @@ export function RagAsk(): React.ReactElement {
 
   const onTopKChange = (e: SelectChangeEvent<number>) => setTopK(Number(e.target.value));
 
-  // 根据后端返回的 provider / model 判断 Chat 是否为真实 AI（保守默认 Mock）。
-  const isRealChat =
-    !!resp && resp.provider !== 'mock' && resp.provider !== '' && resp.model !== 'mock' && resp.model !== '';
+  // 检索层真实：后端返回 embeddingMode === 'REAL' 或 embeddingProvider === 'zhipu'。
+  const isRealRetrieval = !!resp && (resp.embeddingMode === 'REAL' || resp.embeddingProvider === 'zhipu');
+  // 生成层真实（Chat 层）：provider / model 均非 mock（undefined / 空串 / 大小写鲁棒）。
+  const isRealChat = !!resp && isRealChatProvider(resp.provider, resp.model);
+
+  const embeddingModeText =
+    resp?.embeddingMode === 'REAL' ? 'REAL' : resp?.embeddingMode === 'MOCK' ? 'MOCK' : '-';
 
   return (
     <Box>
@@ -84,8 +120,10 @@ export function RagAsk(): React.ReactElement {
       </Typography>
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-        {HONESTY.ragEmbeddingMock}
-        {HONESTY.ragRetrievePseudo}
+        {/* 检索层：真实语义检索（真实 Embedding） */}
+        {HONESTY.ragRetrieveReal}
+        {/* 生成层：由 live 响应决定 */}
+        {isRealChat ? HONESTY.ragChatReal : HONESTY.ragChatMock}
       </Stack>
 
       {!hasIndexed && (
@@ -137,12 +175,50 @@ export function RagAsk(): React.ReactElement {
       {resp && (
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-            {isRealChat ? HONESTY.ragChatReal : HONESTY.ragChatMock}
-            <HonestyBadge tone="info" label={`Provider: ${resp.provider || '-'}`} />
-            <HonestyBadge tone="info" label={`Model: ${resp.model || '-'}`} />
             <Chip size="small" label={`耗时 ${resp.costMs} ms`} variant="outlined" />
             <Chip size="small" label={`引用 ${resp.referenceCount} 条`} variant="outlined" />
           </Stack>
+
+          {/* 检索层 / 生成层 分组状态（来自后端响应，空值降级） */}
+          <LiquidCard variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+              能力边界（来自后端响应）
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+              检索层 / Embedding
+            </Typography>
+            <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
+              <MetaField label="Mode" value={embeddingModeText} emphasize={isRealRetrieval} positive={isRealRetrieval} />
+              <MetaField label="Provider" value={resp.embeddingProvider} />
+              <MetaField label="Model" value={resp.embeddingModel} />
+              <MetaField
+                label="Dimensions"
+                value={resp.embeddingDimensions != null ? String(resp.embeddingDimensions) : undefined}
+              />
+              <MetaField label="Collection" value={resp.collectionName} />
+              <MetaField
+                label="Fallback Used"
+                value={resp.fallbackUsed != null ? (resp.fallbackUsed ? '是' : '否') : undefined}
+              />
+            </Grid>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+              生成层 / Chat
+            </Typography>
+            <Grid container spacing={1.5}>
+              <MetaField label="Provider" value={resp.provider} emphasize={isRealChat} positive={isRealChat} />
+              <MetaField label="Model" value={resp.model} />
+            </Grid>
+
+            {isRealRetrieval && !isRealChat && (
+              <Alert severity="info" sx={{ mt: 1.5 }}>
+                检索使用真实 zhipu embedding-3 1024D；答案生成当前返回 provider={resp.provider || '-'} / model={resp.model || '-'}（以接口响应为准）。
+              </Alert>
+            )}
+          </LiquidCard>
 
           <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
@@ -153,35 +229,22 @@ export function RagAsk(): React.ReactElement {
 
           <LiquidCard variant="outlined" sx={{ p: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-              引用来源（references · 演示性召回）
+              检索引用来源
             </Typography>
             {resp.references.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
                 未返回引用来源。
               </Typography>
             ) : (
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>#</TableCell>
-                    <TableCell>文档ID</TableCell>
-                    <TableCell>Chunk</TableCell>
-                    <TableCell>相似度</TableCell>
-                    <TableCell>内容片段</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {resp.references.map((ref, i) => (
-                    <TableRow key={ref.chunkId ?? i}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>{ref.documentId}</TableCell>
-                      <TableCell>{ref.chunkIndex}</TableCell>
-                      <TableCell>{ref.score != null ? ref.score.toFixed(4) : '-'}</TableCell>
-                      <TableCell sx={{ maxWidth: 420 }}>{ref.content}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <Stack spacing={1}>
+                {resp.references.map((ref, i) => (
+                  <ReferenceCard
+                    key={`${ref.documentId}-${ref.chunkId}-${ref.chunkIndex ?? 'n'}-${i}`}
+                    item={ref}
+                    index={i}
+                  />
+                ))}
+              </Stack>
             )}
           </LiquidCard>
 

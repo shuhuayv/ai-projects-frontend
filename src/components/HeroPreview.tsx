@@ -21,7 +21,7 @@ const BLOCKS: PreviewBlock[] = [
   {
     icon: <MenuBookIcon sx={{ fontSize: 22, color: '#F4F6FF' }} />,
     title: 'RAG 知识库',
-    lines: ['文档上传 → 解析 → 向量索引', 'Embedding 为 Mock 伪向量'],
+    lines: ['文档上传 → 解析 → 向量索引', '检索使用真实 Embedding 向量'],
   },
   {
     icon: <RateReviewIcon sx={{ fontSize: 22, color: '#F4F6FF' }} />,

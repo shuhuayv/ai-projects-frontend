@@ -49,6 +49,28 @@ export interface DocumentIndexResponse {
   vectorCount: number;
   collectionName: string;
   message: string;
+  /** 新增：Embedding 提供方（如 zhipu）。 */
+  embeddingProvider?: string;
+  /** 新增：Embedding 模型（如 embedding-3）。 */
+  embeddingModel?: string;
+  /** 新增：Embedding 维度（Integer，可空）。 */
+  embeddingDimensions?: number | null;
+  /** 新增：索引版本（如 v1）。 */
+  indexVersion?: string;
+}
+
+// ===================== RAG：Embedding 服务状态 =====================
+
+/** GET /api/embedding/status 返回（data 为松散对象，固定 7 字段，全部 optional 以兼容旧后端）。 */
+export interface EmbeddingStatus {
+  provider?: string;
+  model?: string;
+  dimensions?: number;
+  mode?: string;
+  collectionName?: string;
+  fallbackEnabled?: boolean;
+  /** true 表示后端环境变量存在（绝不返回 Key 本身）。 */
+  apiKeyConfigured?: boolean;
 }
 
 // ===================== RAG：语义检索 =====================
@@ -61,9 +83,11 @@ export interface SearchRequest {
 export interface SearchResultItem {
   documentId: number;
   chunkId: number;
-  chunkIndex: number;
+  /** 可空（旧后端可能缺省）。 */
+  chunkIndex?: number | null;
   content: string;
-  score: number;
+  /** 余弦相似度 [0,1]，可空。 */
+  score?: number | null;
   collectionName: string;
 }
 
@@ -73,6 +97,10 @@ export interface SearchResponse {
   resultCount: number;
   results: SearchResultItem[];
   costMs: number;
+  /** 新增：检索候选数。 */
+  retrievalCandidateCount?: number;
+  /** 新增：检索返回数。 */
+  retrievalReturnedCount?: number;
 }
 
 // ===================== RAG：RAG 问答 =====================
@@ -85,9 +113,11 @@ export interface RagAskRequest {
 export interface RagReferenceItem {
   documentId: number;
   chunkId: number;
-  chunkIndex: number;
+  /** 可空（旧后端可能缺省）。 */
+  chunkIndex?: number | null;
   content: string;
-  score: number;
+  /** 余弦相似度 [0,1]，可空。 */
+  score?: number | null;
 }
 
 export interface RagAskResponse {
@@ -98,6 +128,19 @@ export interface RagAskResponse {
   references: RagReferenceItem[];
   promptPreview: string;
   costMs: number;
+  // ===== 检索层 / Embedding 透明字段（旧后端可能缺失，全部 optional） =====
+  embeddingProvider?: string;
+  embeddingModel?: string;
+  embeddingDimensions?: number;
+  embeddingMode?: string;
+  collectionName?: string;
+  retrievalTopK?: number;
+  retrievalMinScore?: number;
+  retrievalCandidateCount?: number;
+  retrievalReturnedCount?: number;
+  fallbackUsed?: boolean;
+  retrievalQualityNote?: string;
+  // ===== Chat 层 =====
   provider: string;
   model: string;
 }

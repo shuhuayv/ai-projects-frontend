@@ -1,10 +1,11 @@
-import { apiPost } from './http';
+import { apiGet, apiPost } from './http';
 import {
   DocumentUploadResponse,
   DocumentParseResponse,
   DocumentIndexResponse,
   SearchResponse,
   RagAskResponse,
+  EmbeddingStatus,
 } from './types';
 
 /**
@@ -26,7 +27,7 @@ export const ragApi = {
     return apiPost<DocumentParseResponse>(`/api/documents/${documentId}/parse`);
   },
 
-  /** 生成 Embedding 并写入向量库（当前为 Mock 伪向量）。 */
+  /** 生成 Embedding 并写入向量库（真实语义向量）。 */
   indexDocument(documentId: number | string): Promise<DocumentIndexResponse> {
     return apiPost<DocumentIndexResponse>(`/api/documents/${documentId}/index`);
   },
@@ -36,8 +37,13 @@ export const ragApi = {
     return apiPost<SearchResponse>('/api/search', { query, topK });
   },
 
-  /** RAG 问答（支持真实智谱 / Mock）。 */
+  /** RAG 问答（检索层为真实 Embedding；生成层 Chat 支持真实智谱 / Mock）。 */
   ask(question: string, topK = 5): Promise<RagAskResponse> {
     return apiPost<RagAskResponse>('/api/rag/ask', { question, topK });
   },
 };
+
+/** 获取 Embedding 服务状态（provider / model / dimensions / mode 等）。 */
+export async function getEmbeddingStatus(): Promise<EmbeddingStatus> {
+  return apiGet<EmbeddingStatus>('/api/embedding/status');
+}
