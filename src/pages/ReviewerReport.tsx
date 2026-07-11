@@ -218,7 +218,7 @@ export function ReviewerReport(): React.ReactElement {
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Markdown 报告
             </Typography>
-            <MarkdownReport content={report.markdownContent} maxHeight={520} />
+            <MarkdownReport content={report.markdownContent} maxHeight={680} />
           </LiquidCard>
 
           <Accordion sx={{ background: 'transparent', backdropFilter: 'blur(10px)', borderRadius: 2 }}>
