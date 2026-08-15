@@ -78,3 +78,14 @@ RAG_CORPUS_MUTATION_EVIDENCE_LEVEL = NO_OBSERVED_ROW_COUNT_OR_VECTOR_POINT_MUTAT
 - 非生产级 SaaS（无登录 / RBAC / 公网部署 / 生产流量与负载验证）。
 - 无 SSE 流式输出。
 - RAG「精度」与「全面浏览器 E2E」**未经前端验证**。
+
+---
+
+## Dependency Security Closure（依赖安全收口）
+
+- Audit date: 2026-08-15（Node v22.22.2 / npm 10.9.7）。
+- 全量审计（pre → post）：9 → 7；其中 high 3 → 1（`postcss` 8.5.16→8.5.26、`nanoid` 3.3.15→3.3.18 已在同 major 声明范围内 lock-only 修复）。
+- Production-only（`npm audit --omit=dev`，post）：**0 high / 0 critical**（2 moderate：`react-router` / `react-router-dom`，本前端纯客户端无 SSR，文档化保留）。
+- Remaining retained：`vite` high（dev-only，Windows 专用 `server.fs.deny` 路径，macOS 开发环境不可达）、`vitest` critical（dev-only，需未启用的 Vitest UI server），二者 patched 版本均为 breaking **major**（vite 8 / vitest 4），本 Gate 不升级、如实记录。
+- 详情与逐条分类见 `docs/DEPENDENCY_SECURITY.md`；本次改动仅 `package-lock.json`（`package.json` 未变）。
+
